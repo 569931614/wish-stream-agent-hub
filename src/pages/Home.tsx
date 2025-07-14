@@ -36,10 +36,10 @@ export default function Home() {
               AI需求池
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
-              🚀 汇聚天马行空的想法，让AI为你的创意插上翅膀
+              🚀 汇聚实用AI需求，让AI为你的业务提效增值
             </p>
             <p className="text-lg text-muted-foreground/80">
-              每一个需求都可能改变世界，每一个想法都值得被实现
+              分享真实可落地的AI应用需求，找到最适合的解决方案
             </p>
           </div>
 
@@ -47,23 +47,23 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
             <div className="card-gradient p-6 text-center space-y-3 float-animation">
               <Sparkles className="h-8 w-8 text-primary mx-auto" />
-              <h3 className="text-lg font-semibold">创意无限</h3>
+              <h3 className="text-lg font-semibold">业务提效</h3>
               <p className="text-sm text-muted-foreground">
-                分享你天马行空的AI需求想法
+                分享真实可落地的AI应用需求
               </p>
             </div>
             <div className="card-gradient p-6 text-center space-y-3 float-animation" style={{ animationDelay: '0.5s' }}>
               <Users className="h-8 w-8 text-accent mx-auto" />
               <h3 className="text-lg font-semibold">社区互动</h3>
               <p className="text-sm text-muted-foreground">
-                点赞、评论，与志同道合的人交流
+                交流经验，找到最佳解决方案
               </p>
             </div>
             <div className="card-gradient p-6 text-center space-y-3 float-animation" style={{ animationDelay: '1s' }}>
               <Zap className="h-8 w-8 text-primary-glow mx-auto" />
-              <h3 className="text-lg font-semibold">梦想成真</h3>
+              <h3 className="text-lg font-semibold">需求实现</h3>
               <p className="text-sm text-muted-foreground">
-                优秀的需求有机会被实现
+                实用需求获得开发者关注和实现
               </p>
             </div>
           </div>
@@ -95,10 +95,10 @@ export default function Home() {
           {/* 底部说明 */}
           <div className="mt-16 text-center space-y-2">
             <p className="text-sm text-muted-foreground/60">
-              💡 想法越疯狂越好，创意越独特越棒
+              💡 分享实用需求，找到靠谱解决方案
             </p>
             <p className="text-xs text-muted-foreground/40">
-              这里是想象力的聚集地，未来科技的起点
+              专注业务价值，让AI真正为你所用
             </p>
           </div>
         </div>
