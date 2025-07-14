@@ -2,39 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Agent需求池设计系统 - 科技感配色方案 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* 深色科技主题 */
+    --background: 222 15% 8%;
+    --foreground: 210 20% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 222 20% 12%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 222 20% 12%;
+    --popover-foreground: 210 20% 95%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* 主要颜色 - 科技蓝 */
+    --primary: 213 94% 68%;
+    --primary-foreground: 222 15% 8%;
+    --primary-glow: 213 100% 75%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* 次要颜色 - 深蓝灰 */
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 20% 95%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* 柔和色调 */
+    --muted: 217 32% 20%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* 强调色 - 青色 */
+    --accent: 180 100% 70%;
+    --accent-foreground: 222 15% 8%;
 
-    --destructive: 0 84.2% 60.2%;
+    /* 危险色 */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* 边框和输入 */
+    --border: 217 32% 25%;
+    --input: 217 32% 20%;
+    --ring: 213 94% 68%;
+
+    /* 渐变效果 */
+    --gradient-primary: linear-gradient(135deg, hsl(213 94% 68%), hsl(180 100% 70%));
+    --gradient-card: linear-gradient(135deg, hsl(222 20% 12%), hsl(217 32% 17%));
+    --gradient-hero: linear-gradient(135deg, hsl(222 15% 8%), hsl(213 30% 15%));
+
+    /* 阴影效果 */
+    --shadow-primary: 0 10px 30px -10px hsl(213 94% 68% / 0.3);
+    --shadow-card: 0 8px 32px -8px hsl(222 15% 0% / 0.4);
+    --shadow-glow: 0 0 40px hsl(213 94% 68% / 0.2);
+
+    /* 动画 */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     --radius: 0.5rem;
 
@@ -101,5 +121,107 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
+}
+
+@layer components {
+  /* 自定义组件样式 */
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground;
+    @apply px-8 py-4 rounded-lg font-semibold;
+    @apply shadow-[var(--shadow-primary)] transition-[var(--transition-spring)];
+    @apply hover:scale-105 hover:shadow-[var(--shadow-glow)];
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground border border-border;
+    @apply px-6 py-3 rounded-lg font-medium;
+    @apply transition-[var(--transition-smooth)];
+    @apply hover:bg-muted hover:scale-102;
+  }
+
+  .card-gradient {
+    @apply bg-gradient-to-br from-card to-secondary;
+    @apply border border-border rounded-xl;
+    @apply shadow-[var(--shadow-card)];
+  }
+
+  .input-field {
+    @apply bg-input border border-border rounded-lg px-4 py-3;
+    @apply text-foreground placeholder:text-muted-foreground;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+    @apply transition-[var(--transition-smooth)];
+  }
+
+  .barrage-item {
+    @apply bg-card/80 backdrop-blur-sm border border-border/50;
+    @apply px-4 py-2 rounded-full text-sm;
+    @apply shadow-lg transition-[var(--transition-smooth)];
+    animation: barrageFloat 15s linear infinite;
+  }
+
+  .requirement-card {
+    @apply card-gradient p-6 hover:scale-102;
+    @apply transition-[var(--transition-spring)];
+  }
+}
+
+@layer utilities {
+  .scale-102 {
+    transform: scale(1.02);
+  }
+
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* 弹幕动画 */
+@keyframes barrageFloat {
+  0% {
+    transform: translateX(100vw);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+/* 漂浮动画 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 脉冲光效 */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(213 94% 68% / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(213 94% 68% / 0.6);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
