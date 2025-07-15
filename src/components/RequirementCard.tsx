@@ -1,13 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Heart, MessageCircle, DollarSign, Clock, User, Send, Plus, CheckCircle } from 'lucide-react';
-import { Requirement, toggleLike, addComment, getUserId } from '@/lib/data';
+import { Heart, MessageCircle, DollarSign, Clock, User, Send, CheckCircle, AlertCircle, PlayCircle } from 'lucide-react';
+import { Requirement, RequirementStatus, toggleLike, addComment, getUsername, hasUserLiked } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
+
+// 状态配置
+const statusConfig = {
+  pending: { label: '待确认', color: 'bg-yellow-500', icon: AlertCircle },
+  submitted: { label: '已提交', color: 'bg-blue-500', icon: Clock },
+  developing: { label: '开发中', color: 'bg-orange-500', icon: PlayCircle },
+  completed: { label: '开发完成', color: 'bg-green-500', icon: CheckCircle }
+};
 
 interface RequirementCardProps {
   requirement: Requirement;
@@ -18,11 +26,25 @@ export function RequirementCard({ requirement, onUpdate }: RequirementCardProps)
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const { toast } = useToast();
-  
-  const userId = getUserId();
-  const isLiked = requirement.likedBy.includes(userId);
+
+  const username = getUsername();
   const timeAgo = getTimeAgo(requirement.createdAt);
+
+  // 检查用户是否已点赞
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      try {
+        const liked = await hasUserLiked(requirement.id, username);
+        setIsLiked(liked);
+      } catch (error) {
+        console.error('Failed to check like status:', error);
+      }
+    };
+
+    checkLikeStatus();
+  }, [requirement.id, username]);
 
   // 生成头像背景色和首字母
   const getAvatarInfo = (username: string) => {
@@ -36,31 +58,36 @@ export function RequirementCard({ requirement, onUpdate }: RequirementCardProps)
 
   const avatarInfo = getAvatarInfo(requirement.username);
 
-  const handleLike = () => {
-    toggleLike(requirement.id);
-    onUpdate();
-    
-    if (!isLiked) {
+  const handleLike = async () => {
+    try {
+      const newIsLiked = await toggleLike(requirement.id, username);
+      setIsLiked(newIsLiked);
+      onUpdate();
+
+      if (newIsLiked) {
+        toast({
+          title: "👍 点赞成功",
+          description: "感谢你的支持！",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
       toast({
-        title: "👍 点赞成功",
-        description: "感谢你的支持！",
+        title: "操作失败",
+        description: "请稍后再试",
+        variant: "destructive",
       });
     }
   };
 
-  const handleSupport = () => {
-    toast({
-      title: "💰 加薪成功",
-      description: "感谢你的支持！",
-    });
-  };
+
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     
     setIsSubmittingComment(true);
     try {
-      addComment(requirement.id, newComment.trim());
+      await addComment(requirement.id, username, newComment.trim());
       setNewComment('');
       onUpdate();
       toast({
@@ -68,6 +95,7 @@ export function RequirementCard({ requirement, onUpdate }: RequirementCardProps)
         description: "你的想法已经发布！",
       });
     } catch (error) {
+      console.error('Failed to add comment:', error);
       toast({
         title: "评论失败",
         description: "请稍后再试",
@@ -78,140 +106,160 @@ export function RequirementCard({ requirement, onUpdate }: RequirementCardProps)
     }
   };
 
+  // 获取状态配置
+  const statusInfo = statusConfig[requirement.status];
+  const StatusIcon = statusInfo.icon;
+
   return (
-    <Card className="requirement-card hover:shadow-lg transition-all duration-300 bg-card border border-border/50">
-      <CardHeader className="pb-4">
-        {/* 用户信息和状态 */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback className={`${avatarInfo.color} text-white font-semibold`}>
-                {avatarInfo.initial}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground">{requirement.username}</span>
-                <span className="text-xs text-muted-foreground">{timeAgo}</span>
-              </div>
-              {requirement.allowSuggestions && (
-                <span className="text-xs text-primary">接受建议</span>
-              )}
+    <Card className="requirement-card group hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-card to-card/80 border border-border/50 rounded-xl overflow-hidden backdrop-blur-sm relative">
+      {/* 右上角状态标签 */}
+      <div className="absolute top-3 right-3 z-10">
+        <Badge
+          className={`${statusInfo.color} text-white flex items-center gap-1 px-3 py-1.5 text-xs font-semibold shadow-lg`}
+        >
+          <StatusIcon className="h-3 w-3" />
+          {statusInfo.label}
+        </Badge>
+      </div>
+
+      <CardContent className="p-5">
+        {/* 头部：用户信息 */}
+        <div className="flex items-center gap-3 mb-5 pr-20">
+          <Avatar className="h-12 w-12 shrink-0 ring-2 ring-primary/20 shadow-lg">
+            <AvatarFallback className={`${avatarInfo.color} text-white font-semibold text-base`}>
+              {avatarInfo.initial}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="font-semibold text-lg text-foreground">{requirement.username}</div>
+            <div className="text-sm text-muted-foreground flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {timeAgo}
             </div>
           </div>
-          
-          {/* 状态标识 */}
+        </div>
+
+        {/* 需求标题 */}
+        <h3 className="text-2xl font-bold text-foreground mb-4 leading-tight group-hover:text-primary transition-colors">
+          {requirement.title}
+        </h3>
+
+        {/* 需求描述 */}
+        <p className="text-lg text-muted-foreground mb-5 leading-relaxed line-clamp-4">
+          {requirement.description}
+        </p>
+
+        {/* 底部状态信息 */}
+        <div className="flex items-center justify-between mb-5 p-3 bg-muted/20 rounded-lg border border-border/30">
           <div className="flex items-center gap-2">
-            {Math.random() > 0.7 && ( // 随机显示已完成状态作为演示
-              <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                已完成
+            <span className="text-orange-500 text-base">🔥</span>
+            <span className="text-sm text-muted-foreground font-medium"> {requirement.username.split('的')[1] || requirement.username}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            {requirement.allowSuggestions && (
+              <Badge variant="outline" className="bg-green-500/15 text-green-400 border-green-500/30 text-sm font-semibold px-3 py-1.5 rounded-full shadow-sm">
+                接受建议
               </Badge>
             )}
             {requirement.willingToPay && requirement.paymentAmount && (
-              <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200">
-                <DollarSign className="h-3 w-3 mr-1" />
-                ¥{requirement.paymentAmount}
+              <Badge variant="secondary" className="bg-yellow-500/15 text-yellow-400 border-yellow-500/30 text-sm font-semibold px-3 py-1.5 rounded-full shadow-sm">
+                愿意付费 ¥{requirement.paymentAmount}
               </Badge>
             )}
           </div>
         </div>
-        
-        {/* 需求标题 */}
-        <h3 className="text-lg font-semibold text-foreground leading-tight mt-3">
-          {requirement.title}
-        </h3>
-      </CardHeader>
-      
-      <CardContent className="pt-0 pb-4">
-        <p className="text-muted-foreground leading-relaxed">
-          {requirement.description}
-        </p>
-        
-        {/* Powered by 标识 */}
-        <div className="flex items-center gap-1 mt-4 text-xs text-muted-foreground/60">
-          <span>⚡</span>
-          <span>Powered by AI-需求池</span>
-        </div>
-      </CardContent>
-      
-      <CardFooter className="flex-col gap-4 pt-0">
-        {/* 操作按钮 */}
-        <div className="flex items-center justify-between w-full border-t border-border pt-4">
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSupport}
-              className="flex items-center gap-1 text-muted-foreground hover:text-primary hover:bg-primary/10 px-3 py-1.5 h-auto text-sm"
-            >
-              <Plus className="h-4 w-4" />
-              <span>0</span>
-              <span>加薪</span>
-            </Button>
-            
-            <div className="w-px h-4 bg-border mx-1" />
-            
+
+        {/* 标签展示 */}
+        {(() => {
+          const tags = requirement.tags;
+          if (!tags || !Array.isArray(tags) || tags.length === 0) return null;
+
+          return (
+            <div className="flex flex-wrap gap-2 mb-5">
+              {tags.map((tag, index) => (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-sm font-semibold px-4 py-1.5 rounded-full shadow-sm hover:bg-blue-500/20 transition-colors"
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          );
+        })()}
+
+        {/* 互动按钮 */}
+        <div className="flex items-center justify-between pt-4 border-t border-border/50">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleLike}
-              className={`flex items-center gap-1 px-3 py-1.5 h-auto text-sm transition-colors ${
-                isLiked 
-                  ? 'text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100' 
-                  : 'text-muted-foreground hover:text-red-500 hover:bg-red-50'
+              className={`flex items-center gap-2 text-sm h-10 px-4 rounded-full transition-all font-medium ${
+                isLiked
+                  ? 'text-red-500 bg-red-500/15 hover:bg-red-500/25 border border-red-500/30'
+                  : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20'
               }`}
             >
               <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-              <span>{requirement.likes}</span>
+              {requirement.likes}
             </Button>
-            
-            <div className="w-px h-4 bg-border mx-1" />
-            
+
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowComments(!showComments)}
-              className="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 px-3 py-1.5 h-auto text-sm"
+              className="flex items-center gap-2 text-sm h-10 px-4 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all font-medium border border-transparent hover:border-primary/20"
             >
               <MessageCircle className="h-4 w-4" />
-              <span>{requirement.comments.length}</span>
-              <span>条评论</span>
+              {requirement.comments.length} 条建议和评论
             </Button>
           </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowComments(!showComments)}
+            className="text-sm h-9 px-4 text-muted-foreground hover:text-primary rounded-full font-medium border border-transparent hover:border-primary/20 hover:bg-primary/5"
+          >
+            {showComments ? '收起' : '查看详情'}
+          </Button>
         </div>
-        
         {/* 评论区域 */}
         {showComments && (
           <>
-            <Separator />
-            <div className="w-full space-y-4">
+            <Separator className="my-5 bg-border" />
+            <div className="w-full space-y-5">
               {requirement.comments.length > 0 && (
-                <div className="space-y-3 max-h-60 overflow-y-auto">
+                <div className="space-y-4 max-h-64 overflow-y-auto">
                   {requirement.comments.map((comment) => (
-                    <div key={comment.id} className="bg-muted/30 p-3 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-foreground">
+                    <div key={comment.id} className="bg-muted/30 p-4 rounded-lg border border-border">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                          {comment.username.charAt(0)}
+                        </div>
+                        <span className="text-base font-medium text-foreground truncate">
                           {comment.username}
                         </span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-sm text-muted-foreground shrink-0">
                           {getTimeAgo(comment.createdAt)}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-base text-muted-foreground leading-relaxed pl-11">
                         {comment.content}
                       </p>
                     </div>
                   ))}
                 </div>
               )}
-              
-              <div className="flex gap-2">
+
+              <div className="flex gap-3 pt-3">
                 <Input
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="分享你的想法..."
-                  className="input-field flex-1"
+                  className="flex-1 h-12 border-border focus:border-primary focus:ring-primary rounded-lg bg-background"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -222,19 +270,19 @@ export function RequirementCard({ requirement, onUpdate }: RequirementCardProps)
                 <Button
                   onClick={handleAddComment}
                   disabled={!newComment.trim() || isSubmittingComment}
-                  className="btn-secondary shrink-0"
+                  className="shrink-0 px-5 h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors"
                 >
                   {isSubmittingComment ? (
-                    <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                    <div className="animate-spin h-5 w-5 border-2 border-current border-t-transparent rounded-full" />
                   ) : (
-                    <Send className="h-4 w-4" />
+                    <Send className="h-5 w-5" />
                   )}
                 </Button>
               </div>
             </div>
           </>
         )}
-      </CardFooter>
+      </CardContent>
     </Card>
   );
 }
