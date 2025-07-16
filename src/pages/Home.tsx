@@ -19,14 +19,13 @@ export default function Home() {
   };
 
   return (
-    <div
+    <div 
       className="min-h-screen relative overflow-hidden"
       style={{
         background: `linear-gradient(rgba(34, 34, 47, 0.85), rgba(34, 34, 47, 0.85)), url(${heroBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        zoom: '0.9'
+        backgroundAttachment: 'fixed'
       }}
     >
       {/* 弹幕背景 */}
