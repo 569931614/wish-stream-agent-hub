@@ -197,6 +197,17 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// 前端路由fallback - 必须在错误处理之前
+app.get('*', (req, res) => {
+  // 如果请求的是API路径，返回404
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+
+  // 否则返回前端index.html（支持前端路由）
+  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
+});
+
 // 错误处理中间件
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error);
@@ -205,9 +216,11 @@ app.use((error, req, res, next) => {
 
 // 启动服务器
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`API available at http://localhost:${PORT}/api`);
-  console.log('Database ready - no sample data auto-initialization');
+  console.log(`🚀 老林AI需求池服务器启动成功！`);
+  console.log(`📱 前端网站: http://localhost:${PORT}`);
+  console.log(`🔌 API接口: http://localhost:${PORT}/api`);
+  console.log(`💾 数据库已就绪`);
+  console.log(`⚡ 单服务模式 - 前端和后端统一在端口 ${PORT}`);
 });
 
 module.exports = app;
