@@ -95,7 +95,7 @@ export default function RequirementPool() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" style={{ zoom: '90%' }}>
       {/* 导航栏 */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-8xl mx-auto px-1 sm:px-3 lg:px-4 py-3 sm:py-4">
