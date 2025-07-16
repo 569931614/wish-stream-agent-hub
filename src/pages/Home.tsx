@@ -19,13 +19,14 @@ export default function Home() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen relative overflow-hidden"
       style={{
         background: `linear-gradient(rgba(34, 34, 47, 0.85), rgba(34, 34, 47, 0.85)), url(${heroBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
+        backgroundAttachment: 'fixed',
+        zoom: '0.9'
       }}
     >
       {/* 弹幕背景 */}
@@ -45,7 +46,7 @@ export default function Home() {
               />
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold text-gradient leading-tight">
-              老林AI需求池
+              需求池
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed px-2">
               🚀 汇聚实用AI需求，让AI为你的业务提效增值
