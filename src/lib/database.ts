@@ -1,5 +1,15 @@
 // 前端 API 客户端 - 连接到后端 SQLite 数据库
-const API_BASE_URL = 'http://localhost:3001/api';
+// 动态获取API基础URL，支持开发和生产环境
+const getApiBaseUrl = () => {
+  // 如果是开发环境，使用localhost
+  if (import.meta.env.DEV) {
+    return 'http://localhost:3001/api';
+  }
+  // 生产环境使用相对路径，与前端同域
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // 需求状态类型
 export type RequirementStatus = 'pending' | 'submitted' | 'developing' | 'completed';
