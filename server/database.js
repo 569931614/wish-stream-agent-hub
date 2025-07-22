@@ -332,6 +332,30 @@ function deleteRequirement(requirementId) {
   return { success: true, message: 'Requirement deleted successfully' };
 }
 
+// 删除评论
+function deleteComment(commentId) {
+  const stmt = db.prepare('DELETE FROM comments WHERE id = ?');
+  const result = stmt.run(commentId);
+
+  if (result.changes === 0) {
+    throw new Error('Comment not found');
+  }
+
+  return { success: true, message: 'Comment deleted successfully' };
+}
+
+// 删除建议
+function deleteSuggestion(suggestionId) {
+  const stmt = db.prepare('DELETE FROM suggestions WHERE id = ?');
+  const result = stmt.run(suggestionId);
+
+  if (result.changes === 0) {
+    throw new Error('Suggestion not found');
+  }
+
+  return { success: true, message: 'Suggestion deleted successfully' };
+}
+
 // 清除所有数据
 function clearAllData() {
   db.exec(`
@@ -431,6 +455,8 @@ module.exports = {
   hasUserLiked,
   updateRequirementStatus,
   deleteRequirement,
+  deleteComment,
+  deleteSuggestion,
   clearAllData,
   initializeSampleData,
   db

@@ -81,7 +81,9 @@ export {
   toggleLike,
   hasUserLiked,
   updateRequirementStatus,
-  deleteRequirement
+  deleteRequirement,
+  deleteComment,
+  deleteSuggestion
 } from './database';
 
 // 导入需要在本文件中使用的函数

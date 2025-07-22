@@ -11,6 +11,8 @@ import {
   getRequirements,
   updateRequirementStatus,
   deleteRequirement,
+  deleteComment,
+  deleteSuggestion,
   type Requirement,
   type RequirementStatus
 } from '@/lib/data';
@@ -29,7 +31,9 @@ import {
   Heart,
   DollarSign,
   ArrowLeft,
-  Trash2
+  Trash2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -48,6 +52,9 @@ export default function AdminDashboard() {
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [deletingRequirement, setDeletingRequirement] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [expandedRequirements, setExpandedRequirements] = useState<Set<string>>(new Set());
+  const [deletingComment, setDeletingComment] = useState<string | null>(null);
+  const [deletingSuggestion, setDeletingSuggestion] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const adminInfo = getAdminInfo();
@@ -161,6 +168,61 @@ export default function AdminDashboard() {
     submitted: requirements.filter(r => r.status === 'submitted').length,
     developing: requirements.filter(r => r.status === 'developing').length,
     completed: requirements.filter(r => r.status === 'completed').length,
+  };
+
+  // 切换需求展开状态
+  const toggleRequirementExpanded = (requirementId: string) => {
+    const newExpanded = new Set(expandedRequirements);
+    if (newExpanded.has(requirementId)) {
+      newExpanded.delete(requirementId);
+    } else {
+      newExpanded.add(requirementId);
+    }
+    setExpandedRequirements(newExpanded);
+  };
+
+  // 删除评论
+  const handleDeleteComment = async (commentId: string) => {
+    setDeletingComment(commentId);
+    try {
+      await deleteComment(commentId);
+      await loadRequirements(); // 重新加载数据
+      toast({
+        title: "删除成功",
+        description: "评论已删除",
+      });
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      toast({
+        title: "删除失败",
+        description: "请稍后再试",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingComment(null);
+    }
+  };
+
+  // 删除建议
+  const handleDeleteSuggestion = async (suggestionId: string) => {
+    setDeletingSuggestion(suggestionId);
+    try {
+      await deleteSuggestion(suggestionId);
+      await loadRequirements(); // 重新加载数据
+      toast({
+        title: "删除成功",
+        description: "建议已删除",
+      });
+    } catch (error) {
+      console.error('Failed to delete suggestion:', error);
+      toast({
+        title: "删除失败",
+        description: "请稍后再试",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingSuggestion(null);
+    }
   };
 
   if (loading) {
@@ -353,10 +415,20 @@ export default function AdminDashboard() {
                             <Heart className="h-3 w-3" />
                             {requirement.likes} 点赞
                           </span>
-                          <span className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleRequirementExpanded(requirement.id)}
+                            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary h-auto p-1"
+                          >
                             <MessageCircle className="h-3 w-3" />
                             {requirement.comments?.length || 0} 评论
-                          </span>
+                            {expandedRequirements.has(requirement.id) ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )}
+                          </Button>
                           {requirement.willingToPay && (
                             <span className="flex items-center gap-1 text-green-600">
                               <DollarSign className="h-3 w-3" />
@@ -364,11 +436,86 @@ export default function AdminDashboard() {
                             </span>
                           )}
                         </div>
-                        
+
                         <div className="text-xs text-muted-foreground">
                           ID: {requirement.id.slice(0, 8)}...
                         </div>
                       </div>
+
+                      {/* 评论和建议展开区域 */}
+                      {expandedRequirements.has(requirement.id) && (
+                        <div className="mt-4 space-y-4 border-t border-border pt-4">
+                          {/* 评论列表 */}
+                          {requirement.comments && requirement.comments.length > 0 && (
+                            <div className="space-y-3">
+                              <h4 className="text-sm font-medium text-foreground">评论 ({requirement.comments.length})</h4>
+                              {requirement.comments.map((comment) => (
+                                <div key={comment.id} className="bg-muted/30 p-3 rounded-lg border border-border">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-sm font-medium">{comment.username}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {formatTime(comment.createdAt)}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-foreground">{comment.content}</p>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteComment(comment.id)}
+                                      disabled={deletingComment === comment.id}
+                                      className="ml-2 h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* 建议列表 */}
+                          {requirement.suggestions && requirement.suggestions.length > 0 && (
+                            <div className="space-y-3">
+                              <h4 className="text-sm font-medium text-foreground">建议 ({requirement.suggestions.length})</h4>
+                              {requirement.suggestions.map((suggestion) => (
+                                <div key={suggestion.id} className="bg-muted/30 p-3 rounded-lg border border-border">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-sm font-medium">{suggestion.username}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {formatTime(suggestion.createdAt)}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-foreground">{suggestion.content}</p>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteSuggestion(suggestion.id)}
+                                      disabled={deletingSuggestion === suggestion.id}
+                                      className="ml-2 h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* 无评论和建议时的提示 */}
+                          {(!requirement.comments || requirement.comments.length === 0) &&
+                           (!requirement.suggestions || requirement.suggestions.length === 0) && (
+                            <div className="text-center py-4 text-muted-foreground text-sm">
+                              暂无评论和建议
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })

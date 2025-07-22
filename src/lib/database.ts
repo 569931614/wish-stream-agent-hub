@@ -168,6 +168,20 @@ export async function deleteRequirement(requirementId: string): Promise<{ succes
   });
 }
 
+// 删除评论
+export async function deleteComment(commentId: string): Promise<{ success: boolean; message: string }> {
+  return apiRequest(`/comments/${commentId}`, {
+    method: 'DELETE',
+  });
+}
+
+// 删除建议
+export async function deleteSuggestion(suggestionId: string): Promise<{ success: boolean; message: string }> {
+  return apiRequest(`/suggestions/${suggestionId}`, {
+    method: 'DELETE',
+  });
+}
+
 // 清除所有数据
 export async function clearAllData(): Promise<void> {
   await apiRequest('/reset', {

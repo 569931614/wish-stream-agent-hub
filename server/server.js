@@ -11,6 +11,8 @@ const {
   hasUserLiked,
   updateRequirementStatus,
   deleteRequirement,
+  deleteComment,
+  deleteSuggestion,
   clearAllData,
   initializeSampleData
 } = require('./database');
@@ -165,6 +167,36 @@ app.delete('/api/requirements/:id', (req, res) => {
       res.status(404).json({ error: error.message });
     } else {
       res.status(500).json({ error: 'Failed to delete requirement' });
+    }
+  }
+});
+
+// 删除评论
+app.delete('/api/comments/:id', (req, res) => {
+  try {
+    const result = deleteComment(req.params.id);
+    res.json(result);
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    if (error.message.includes('not found')) {
+      res.status(404).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'Failed to delete comment' });
+    }
+  }
+});
+
+// 删除建议
+app.delete('/api/suggestions/:id', (req, res) => {
+  try {
+    const result = deleteSuggestion(req.params.id);
+    res.json(result);
+  } catch (error) {
+    console.error('Error deleting suggestion:', error);
+    if (error.message.includes('not found')) {
+      res.status(404).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'Failed to delete suggestion' });
     }
   }
 });
