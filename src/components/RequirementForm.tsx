@@ -6,9 +6,9 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { TagSelector } from '@/components/TagSelector';
-import { saveRequirement, generateRandomUsername, getUsername, updateUsername } from '@/lib/data';
+import { saveRequirement, generateRandomUsername, getUsername, updateUsername, uploadImages } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { Sparkles, Zap, Users, DollarSign, User, Shuffle } from 'lucide-react';
+import { Sparkles, Zap, Users, DollarSign, User, Shuffle, Upload, X, Image } from 'lucide-react';
 
 interface RequirementFormProps {
   onSubmit?: () => void;
@@ -24,8 +24,12 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
   const [willingToPay, setWillingToPay] = useState(true);
   const [paymentAmount, setPaymentAmount] = useState('200');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 防止名称输入框自动选中文本
   useEffect(() => {
@@ -38,6 +42,13 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // 清理图片预览URL
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews]);
 
 
 
@@ -53,6 +64,120 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
     // 当用户手动修改名称时，也更新本地存储
     if (newName.trim()) {
       updateUsername(newName.trim());
+    }
+  };
+
+  // 处理文件列表
+  const processFiles = (files: File[]) => {
+    // 验证文件类型
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "文件类型错误",
+          description: `${file.name} 不是图片文件`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // 验证文件大小（限制为5MB）
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "文件过大",
+          description: `${file.name} 超过5MB限制`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    // 限制最多上传5张图片
+    const currentCount = images.length;
+    const maxImages = 5;
+    const availableSlots = maxImages - currentCount;
+
+    if (availableSlots <= 0) {
+      toast({
+        title: "图片数量限制",
+        description: `最多只能上传${maxImages}张图片`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const filesToAdd = validFiles.slice(0, availableSlots);
+
+    if (filesToAdd.length < validFiles.length) {
+      toast({
+        title: "部分图片未添加",
+        description: `只能再添加${availableSlots}张图片`,
+        variant: "destructive",
+      });
+    }
+
+    // 生成预览URL
+    const newPreviews = filesToAdd.map(file => URL.createObjectURL(file));
+
+    setImages(prev => [...prev, ...filesToAdd]);
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+
+    // 清空input值，允许重复选择同一文件
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    // 成功提示
+    toast({
+      title: "图片上传成功",
+      description: `已添加 ${filesToAdd.length} 张图片`,
+    });
+  };
+
+  // 处理图片上传
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    processFiles(files);
+  };
+
+  // 删除图片
+  const removeImage = (index: number) => {
+    // 释放预览URL内存
+    URL.revokeObjectURL(imagePreviews[index]);
+
+    setImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // 触发文件选择
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  // 处理拖拽事件
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      processFiles(files);
     }
   };
 
@@ -80,6 +205,23 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
     setIsSubmitting(true);
 
     try {
+      let imageUrls: string[] = [];
+
+      // 如果有图片，先上传图片
+      if (images.length > 0) {
+        try {
+          const uploadResult = await uploadImages(images);
+          imageUrls = uploadResult.files.map(file => file.url);
+        } catch (error) {
+          console.error('Failed to upload images:', error);
+          toast({
+            title: "图片上传失败",
+            description: "图片上传遇到问题，但需求仍会保存（不含图片）",
+            variant: "destructive",
+          });
+        }
+      }
+
       await saveRequirement({
         title: title.trim(),
         description: description.trim(),
@@ -87,11 +229,12 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
         willingToPay,
         paymentAmount: willingToPay ? parseFloat(paymentAmount) : undefined,
         tags: tags,
+        images: imageUrls,
       }, name.trim());
 
       toast({
         title: "🎉 需求提交成功！",
-        description: "你的想法已经加入需求池，期待更多人看到并实现它！",
+        description: "你的需求已提交，正在等待管理员审核。审核通过后将会出现在需求池中，敬请期待！",
       });
 
       // 重置表单（保持用户名称不变）
@@ -101,6 +244,11 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
       setAllowSuggestions(true);
       setWillingToPay(true);
       setPaymentAmount('200');
+
+      // 清理图片
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+      setImages([]);
+      setImagePreviews([]);
 
       onSubmit?.();
     } catch (error) {
@@ -116,6 +264,11 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
   };
 
   const handleCancel = () => {
+    // 清理图片预览URL
+    imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    setImages([]);
+    setImagePreviews([]);
+
     // 关闭弹窗，不重置表单数据
     onCancel?.();
   };
@@ -130,6 +283,11 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
         <CardDescription className="text-lg text-muted-foreground px-4">
           说出你的想法，让AI为你的生活和工作创造无限可能
         </CardDescription>
+        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <p className="text-sm text-blue-700 dark:text-blue-300 text-center">
+            💡 提示：提交的需求将由管理员审核，审核通过后会显示在需求池中
+          </p>
+        </div>
       </CardHeader>
 
       <CardContent className="px-6 sm:px-8 pb-8">
@@ -201,6 +359,84 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
             </div>
           </div>
 
+          {/* 图片上传 */}
+          <div className="space-y-3 p-6 bg-muted/30 rounded-xl border border-border">
+            <Label className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Image className="h-5 w-5 text-primary" />
+              上传图片
+              <span className="text-sm font-normal text-muted-foreground">（可选，最多5张）</span>
+            </Label>
+
+            {/* 隐藏的文件输入 */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+
+            {/* 上传区域 */}
+            <div className="space-y-4">
+              {/* 上传按钮 */}
+              <div
+                className={`w-full h-20 border-2 border-dashed rounded-lg transition-all duration-200 image-upload-area ${
+                  isDragOver
+                    ? 'border-primary bg-primary/5 drag-over'
+                    : 'border-border hover:border-primary hover:bg-primary/5'
+                } ${images.length >= 5 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                onClick={images.length < 5 ? triggerFileSelect : undefined}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="flex flex-col items-center justify-center h-full gap-2">
+                  <Upload className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    {images.length >= 5 ? '已达到最大上传数量' : '点击选择图片或拖拽到此处'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    支持 JPG、PNG、GIF 格式，单张图片不超过 5MB
+                  </span>
+                </div>
+              </div>
+
+              {/* 图片预览 */}
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group image-preview">
+                      <div className="aspect-square rounded-lg overflow-hidden border border-border bg-muted max-h-20 sm:max-h-24">
+                        <img
+                          src={preview}
+                          alt={`预览图片 ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-1 -right-1 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 图片数量提示 */}
+              {images.length > 0 && (
+                <div className="text-sm text-muted-foreground text-center">
+                  已选择 {images.length}/5 张图片
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* 标签选择 */}
           <div className="space-y-3 p-6 bg-muted/30 rounded-xl border border-border">
             <TagSelector
@@ -267,6 +503,17 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* 审核提示 */}
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+              <div className="flex-shrink-0">⏳</div>
+              <div className="text-sm">
+                <p className="font-medium">需要管理员审核</p>
+                <p className="text-xs opacity-90">提交后需要等待管理员审核通过，审核通过的需求将会显示在需求池中供大家查看</p>
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-3 sm:gap-4 pt-4">

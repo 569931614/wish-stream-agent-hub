@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Heart, MessageCircle, DollarSign, Clock, User, Send, CheckCircle, AlertCircle, PlayCircle } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Heart, MessageCircle, DollarSign, Clock, User, Send, CheckCircle, AlertCircle, PlayCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Requirement, RequirementStatus, toggleLike, addComment, getUsername, hasUserLiked } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,7 +28,25 @@ export function RequirementCard({ requirement, onUpdate }: RequirementCardProps)
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { toast } = useToast();
+
+  // 获取完整的图片URL
+  const getImageUrl = (imageUrl: string) => {
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    // 动态获取API基础URL
+    const apiBase = import.meta.env.DEV ? 'http://localhost:3001' : '';
+    return `${apiBase}${imageUrl}`;
+  };
+
+  // 打开图片查看器
+  const openImageViewer = (index: number) => {
+    setSelectedImageIndex(index);
+    setImageViewerOpen(true);
+  };
 
   const username = getUsername();
   const timeAgo = getTimeAgo(requirement.createdAt);
@@ -148,6 +167,48 @@ export function RequirementCard({ requirement, onUpdate }: RequirementCardProps)
         <p className="text-lg text-muted-foreground mb-5 leading-relaxed line-clamp-4">
           {requirement.description}
         </p>
+
+        {/* 图片展示 */}
+        {requirement.images && requirement.images.length > 0 && (
+          <div className="mb-4">
+            <div className={`grid gap-2 ${
+              requirement.images.length === 1 ? 'grid-cols-1 max-w-xs' :
+              requirement.images.length === 2 ? 'grid-cols-2' :
+              'grid-cols-3 sm:grid-cols-4'
+            }`}>
+              {requirement.images.slice(0, 6).map((imageUrl, index) => (
+                <div key={index} className="relative group">
+                  <div
+                    className={`${
+                      requirement.images.length === 1
+                        ? 'aspect-[4/3] max-h-32'
+                        : 'aspect-square image-grid-compact'
+                    } rounded-md overflow-hidden border border-border bg-muted cursor-pointer clickable-image`}
+                    onClick={() => openImageViewer(index)}
+                  >
+                    <img
+                      src={getImageUrl(imageUrl)}
+                      alt={`需求图片 ${index + 1}`}
+                      className="w-full h-full object-cover requirement-image"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                  {requirement.images.length > 6 && index === 5 && (
+                    <div
+                      className="absolute inset-0 bg-black/50 rounded-md flex items-center justify-center cursor-pointer"
+                      onClick={() => openImageViewer(index)}
+                    >
+                      <span className="text-white text-xs font-semibold">+{requirement.images.length - 6}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 底部状态信息 */}
         <div className="flex items-center justify-between mb-5 p-3 bg-muted/20 rounded-lg border border-border/30">
@@ -283,6 +344,71 @@ export function RequirementCard({ requirement, onUpdate }: RequirementCardProps)
           </>
         )}
       </CardContent>
+
+      {/* 图片查看器 */}
+      <Dialog open={imageViewerOpen} onOpenChange={setImageViewerOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none">
+          <div className="relative w-full h-[95vh] flex items-center justify-center">
+            {/* 关闭按钮 */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setImageViewerOpen(false)}
+              className="absolute top-4 right-4 z-50 text-white hover:bg-white/20 rounded-full h-10 w-10 p-0"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+
+            {/* 左箭头 */}
+            {requirement.images && requirement.images.length > 1 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedImageIndex((prev) => (prev - 1 + requirement.images.length) % requirement.images.length);
+                }}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12 p-0"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </Button>
+            )}
+
+            {/* 右箭头 */}
+            {requirement.images && requirement.images.length > 1 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedImageIndex((prev) => (prev + 1) % requirement.images.length);
+                }}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12 p-0"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </Button>
+            )}
+
+            {/* 图片计数 */}
+            {requirement.images && requirement.images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
+                {selectedImageIndex + 1} / {requirement.images.length}
+              </div>
+            )}
+
+            {/* 主图片 */}
+            {requirement.images && requirement.images[selectedImageIndex] && (
+              <img
+                src={getImageUrl(requirement.images[selectedImageIndex])}
+                alt={`图片 ${selectedImageIndex + 1}`}
+                className="max-w-full max-h-full object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

@@ -200,6 +200,92 @@
     }
   }
 
+  /* 图片上传区域样式 */
+  .image-upload-area {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .image-upload-area:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .image-upload-area.drag-over {
+    border-color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.05);
+    transform: scale(1.02);
+  }
+
+  /* 图片预览样式 */
+  .image-preview {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .image-preview:hover {
+    transform: scale(1.02);
+  }
+
+  .image-preview img {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .image-preview:hover img {
+    filter: brightness(1.1);
+  }
+
+  /* 需求卡片图片样式 */
+  .requirement-image {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .requirement-image:hover {
+    transform: scale(1.02);
+    filter: brightness(1.05);
+  }
+
+  /* 可点击图片容器样式 */
+  .clickable-image {
+    position: relative;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .clickable-image:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .clickable-image:hover::after {
+    content: '🔍';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px;
+    border-radius: 50%;
+    font-size: 16px;
+    opacity: 0;
+    animation: fadeIn 0.2s ease-in-out forwards;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* 图片网格优化 */
+  .image-grid-compact {
+    max-height: 120px;
+  }
+
+  @media (max-width: 640px) {
+    .image-grid-compact {
+      max-height: 80px;
+    }
+  }
+
   .card-gradient {
     @apply bg-gradient-to-br from-card to-secondary;
     @apply border border-border rounded-xl;
@@ -243,19 +329,19 @@
     }
   }
 
-  /* 1600px以下：保持2列 */
-  @media (min-width: 768px) and (max-width: 1599px) {
+  /* 中等屏幕：3列 */
+  @media (min-width: 1024px) {
     .masonry-container {
-      column-count: 2;
+      column-count: 3;
       column-gap: 1rem;
     }
   }
 
-  /* 1600px及以上：3列 */
+  /* 大屏幕：保持3列 */
   @media (min-width: 1600px) {
     .masonry-container {
       column-count: 3;
-      column-gap: 1rem;
+      column-gap: 1.25rem;
     }
   }
 

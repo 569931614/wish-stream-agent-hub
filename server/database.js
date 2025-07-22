@@ -29,6 +29,7 @@ function initializeTables() {
       paymentAmount REAL,
       likes INTEGER DEFAULT 0,
       tags TEXT,
+      images TEXT,
       status TEXT DEFAULT 'pending',
       createdAt TEXT NOT NULL
     )
@@ -104,8 +105,8 @@ function saveRequirement(requirement, username) {
   const status = requirement.status || 'pending'; // 默认状态为待确认
 
   const stmt = db.prepare(`
-    INSERT INTO requirements (id, title, description, username, allowSuggestions, willingToPay, paymentAmount, likes, tags, status, createdAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+    INSERT INTO requirements (id, title, description, username, allowSuggestions, willingToPay, paymentAmount, likes, tags, images, status, createdAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
   `);
 
   stmt.run(
@@ -117,6 +118,7 @@ function saveRequirement(requirement, username) {
     requirement.willingToPay ? 1 : 0,
     requirement.paymentAmount || null,
     requirement.tags && requirement.tags.length > 0 ? JSON.stringify(requirement.tags) : JSON.stringify([]),
+    requirement.images && requirement.images.length > 0 ? JSON.stringify(requirement.images) : JSON.stringify([]),
     status,
     now
   );
@@ -144,6 +146,7 @@ function getRequirementById(id) {
     allowSuggestions: Boolean(requirement.allowSuggestions),
     willingToPay: Boolean(requirement.willingToPay),
     tags: requirement.tags ? (typeof requirement.tags === 'string' ? JSON.parse(requirement.tags) : requirement.tags) : [],
+    images: requirement.images ? (typeof requirement.images === 'string' ? JSON.parse(requirement.images) : requirement.images) : [],
     comments: comments.map(c => ({
       id: c.id,
       username: c.username,
@@ -178,6 +181,7 @@ function getRequirements() {
       allowSuggestions: Boolean(req.allowSuggestions),
       willingToPay: Boolean(req.willingToPay),
       tags: req.tags ? (typeof req.tags === 'string' ? JSON.parse(req.tags) : req.tags) : [],
+      images: req.images ? (typeof req.images === 'string' ? JSON.parse(req.images) : req.images) : [],
       comments: comments.map(c => ({
         id: c.id,
         username: c.username,
@@ -421,20 +425,29 @@ function initializeSampleData() {
   console.log('Sample data initialized');
 }
 
-// 数据库迁移 - 添加status字段
+// 数据库迁移 - 添加status和images字段
 function migrateDatabase() {
   try {
-    // 检查是否已经有status字段
     const tableInfo = db.prepare("PRAGMA table_info(requirements)").all();
-    const hasStatusColumn = tableInfo.some(column => column.name === 'status');
 
+    // 检查是否已经有status字段
+    const hasStatusColumn = tableInfo.some(column => column.name === 'status');
     if (!hasStatusColumn) {
       console.log('Adding status column to requirements table...');
       db.exec('ALTER TABLE requirements ADD COLUMN status TEXT DEFAULT "pending"');
-
       // 将现有的需求状态设置为'submitted'（已提交）
       db.exec("UPDATE requirements SET status = 'submitted' WHERE status IS NULL OR status = ''");
       console.log('Status column added and existing requirements updated to "submitted" status');
+    }
+
+    // 检查是否已经有images字段
+    const hasImagesColumn = tableInfo.some(column => column.name === 'images');
+    if (!hasImagesColumn) {
+      console.log('Adding images column to requirements table...');
+      db.exec('ALTER TABLE requirements ADD COLUMN images TEXT');
+      // 将现有需求的images字段设置为空数组
+      db.exec("UPDATE requirements SET images = '[]' WHERE images IS NULL");
+      console.log('Images column added to requirements table');
     }
   } catch (error) {
     console.error('Database migration error:', error);

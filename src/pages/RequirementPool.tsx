@@ -310,6 +310,15 @@ export default function RequirementPool() {
           </div>
         </div>
 
+        {/* 审核说明 */}
+        {filteredRequirements.length > 0 && (
+          <div className="mb-6 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+            <p className="text-sm text-green-700 dark:text-green-300 text-center">
+              ✅ 以下是已通过管理员审核的需求，欢迎大家查看和参与讨论
+            </p>
+          </div>
+        )}
+
         {/* 需求列表 */}
         <div className="space-y-4 sm:space-y-6">
           {filteredRequirements.length === 0 ? (
@@ -321,6 +330,11 @@ export default function RequirementPool() {
                   <p className="text-muted-foreground">
                     {searchTerm ? '试试其他搜索关键词' : '成为第一个提出需求的人吧！'}
                   </p>
+                  {!searchTerm && (
+                    <p className="text-xs text-muted-foreground/80">
+                      💡 提交的需求需要管理员审核后才会显示在这里
+                    </p>
+                  )}
                   {!searchTerm && (
                     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                       <DialogTrigger asChild>

@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
 const {
   saveRequirement,
   getRequirements,
@@ -20,14 +22,78 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// 创建上传目录
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// 配置multer用于文件上传
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    // 生成唯一文件名：时间戳 + 随机数 + 原始扩展名
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB限制
+    files: 5 // 最多5个文件
+  },
+  fileFilter: function (req, file, cb) {
+    // 只允许图片文件
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('只允许上传图片文件'), false);
+    }
+  }
+});
+
 // 中间件
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// 提供上传的图片文件
+app.use('/uploads', express.static(uploadsDir));
 
 // 静态文件服务（可选，用于提供前端文件）
 app.use(express.static(path.join(__dirname, '..', 'dist')));
 
 // API 路由
+
+// 图片上传
+app.post('/api/upload-images', upload.array('images', 5), (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
+
+    // 返回上传的文件信息
+    const uploadedFiles = req.files.map(file => ({
+      filename: file.filename,
+      originalname: file.originalname,
+      size: file.size,
+      url: `/uploads/${file.filename}`
+    }));
+
+    res.json({
+      success: true,
+      files: uploadedFiles
+    });
+  } catch (error) {
+    console.error('Error uploading images:', error);
+    res.status(500).json({ error: 'Failed to upload images' });
+  }
+});
 
 // 获取所有需求
 app.get('/api/requirements', (req, res) => {

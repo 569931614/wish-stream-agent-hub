@@ -83,7 +83,8 @@ export {
   updateRequirementStatus,
   deleteRequirement,
   deleteComment,
-  deleteSuggestion
+  deleteSuggestion,
+  uploadImages
 } from './database';
 
 // 导入需要在本文件中使用的函数

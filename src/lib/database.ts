@@ -25,6 +25,7 @@ export interface Requirement {
   paymentAmount?: number;
   likes: number;
   tags: string[];
+  images: string[];
   status: RequirementStatus;
   createdAt: string;
   comments: Comment[];
@@ -52,6 +53,7 @@ export interface RequirementInput {
   willingToPay: boolean;
   paymentAmount?: number;
   tags?: string[];
+  images?: string[];
 }
 
 // API 辅助函数
@@ -180,6 +182,26 @@ export async function deleteSuggestion(suggestionId: string): Promise<{ success:
   return apiRequest(`/suggestions/${suggestionId}`, {
     method: 'DELETE',
   });
+}
+
+// 上传图片
+export async function uploadImages(files: File[]): Promise<{ success: boolean; files: Array<{ filename: string; originalname: string; size: number; url: string }> }> {
+  const formData = new FormData();
+  files.forEach(file => {
+    formData.append('images', file);
+  });
+
+  const response = await fetch(`${API_BASE_URL}/upload-images`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+    throw new Error(errorData.error || 'Failed to upload images');
+  }
+
+  return response.json();
 }
 
 // 清除所有数据
