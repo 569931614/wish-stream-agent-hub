@@ -182,7 +182,7 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to="/">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="h-8 sm:h-9 px-3 sm:px-4">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   返回首页
                 </Button>
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-            <Button onClick={handleLogout} variant="outline" size="sm">
+            <Button onClick={handleLogout} variant="outline" size="sm" className="h-8 sm:h-9 px-3 sm:px-4">
               <LogOut className="h-4 w-4 mr-2" />
               登出
             </Button>
@@ -323,7 +323,7 @@ export default function AdminDashboard() {
                             size="sm"
                             onClick={() => setDeleteConfirmId(requirement.id)}
                             disabled={deletingRequirement === requirement.id}
-                            className="ml-2"
+                            className="ml-2 h-8 w-8 p-0"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -394,6 +394,7 @@ export default function AdminDashboard() {
               variant="outline"
               onClick={() => setDeleteConfirmId(null)}
               disabled={!!deletingRequirement}
+              className="h-9 px-4"
             >
               取消
             </Button>
@@ -401,6 +402,7 @@ export default function AdminDashboard() {
               variant="destructive"
               onClick={() => deleteConfirmId && handleDeleteRequirement(deleteConfirmId)}
               disabled={!!deletingRequirement}
+              className="h-9 px-4"
             >
               {deletingRequirement === deleteConfirmId ? (
                 <div className="flex items-center gap-2">

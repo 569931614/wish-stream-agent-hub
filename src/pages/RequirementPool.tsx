@@ -103,7 +103,7 @@ export default function RequirementPool() {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <Link to="/">
-                <Button variant="ghost" size="sm" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3">
+                <Button variant="ghost" size="sm" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 h-8 sm:h-9">
                   <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">返回首页</span>
                   <span className="sm:hidden">返回</span>
@@ -191,7 +191,7 @@ export default function RequirementPool() {
 
                 <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogTrigger asChild>
-                  <Button className="btn-primary text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-2">
+                  <Button className="btn-primary text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-2.5 h-8 sm:h-10">
                     <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     <span className="hidden sm:inline">提新需求</span>
                     <span className="sm:hidden">提需求</span>
@@ -324,7 +324,7 @@ export default function RequirementPool() {
                   {!searchTerm && (
                     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                       <DialogTrigger asChild>
-                        <Button className="btn-primary mt-4">
+                        <Button className="btn-primary mt-4 px-6 py-3 h-12">
                           <Plus className="h-4 w-4 mr-2" />
                           提个需求
                         </Button>

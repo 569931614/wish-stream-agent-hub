@@ -129,16 +129,75 @@
   /* 自定义组件样式 */
   .btn-primary {
     @apply bg-gradient-to-r from-primary to-accent text-primary-foreground;
-    @apply px-8 py-4 rounded-lg font-semibold;
+    @apply font-semibold;
     @apply shadow-[var(--shadow-primary)] transition-[var(--transition-spring)];
     @apply hover:scale-105 hover:shadow-[var(--shadow-glow)];
+    @apply active:scale-95 active:shadow-inner;
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground border border-border;
-    @apply px-6 py-3 rounded-lg font-medium;
+    @apply bg-secondary/80 backdrop-blur-sm text-secondary-foreground border border-border/60;
+    @apply font-medium;
     @apply transition-[var(--transition-smooth)];
-    @apply hover:bg-muted hover:scale-102;
+    @apply hover:bg-secondary hover:border-border hover:scale-102;
+    @apply active:scale-95;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 移动端按钮优化 */
+  @media (max-width: 768px) {
+    .btn-primary {
+      min-height: 48px; /* 确保触摸友好的最小高度 */
+    }
+
+    .btn-secondary {
+      min-height: 44px;
+    }
+  }
+
+  /* 平板端按钮优化 */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .btn-primary {
+      @apply hover:scale-[1.02];
+      min-height: 52px;
+      max-height: 60px;
+    }
+
+    .btn-secondary {
+      @apply hover:scale-[1.01];
+      min-height: 46px;
+      max-height: 52px;
+    }
+  }
+
+  /* PC端按钮优化 */
+  @media (min-width: 1025px) {
+    .btn-primary {
+      @apply hover:scale-[1.02]; /* PC端减少缩放效果 */
+      min-height: 56px;
+      max-height: 64px;
+    }
+
+    .btn-secondary {
+      @apply hover:scale-[1.01];
+      min-height: 48px;
+      max-height: 56px;
+    }
+  }
+
+  /* 大屏幕优化 */
+  @media (min-width: 1600px) {
+    .btn-primary {
+      min-height: 60px;
+      max-height: 68px;
+    }
+
+    .btn-secondary {
+      min-height: 52px;
+      max-height: 60px;
+    }
   }
 
   .card-gradient {

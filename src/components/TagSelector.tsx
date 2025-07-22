@@ -150,7 +150,7 @@ export function TagSelector({ selectedTags, onTagsChange, maxTags = 5 }: TagSele
             variant="ghost"
             size="sm"
             onClick={() => setShowAllPresets(true)}
-            className="text-primary hover:text-primary/80"
+            className="text-primary hover:text-primary/80 h-8 px-3"
           >
             查看更多标签 ({PRESET_TAGS.length - 20}个)
           </Button>

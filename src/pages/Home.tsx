@@ -55,39 +55,12 @@ export default function Home() {
             </p>
           </div>
 
-          {/* 特色功能展示 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 my-8 sm:my-12 px-2">
-            <div className="card-gradient p-4 sm:p-6 text-center space-y-2 sm:space-y-3 float-animation">
-              <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto" />
-              <h3 className="text-base sm:text-lg font-semibold">业务提效</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                分享真实可落地的AI应用需求
-              </p>
-            </div>
-            
-            <div className="card-gradient p-4 sm:p-6 text-center space-y-2 sm:space-y-3 float-animation sm:col-span-2 lg:col-span-1" style={{ animationDelay: '1s' }}>
-              <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-primary-glow mx-auto" />
-              <h3 className="text-base sm:text-lg font-semibold">需求实现</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                实用需求获得开发者关注和实现
-              </p>
-            </div>
-
-            <div className="card-gradient p-4 sm:p-6 text-center space-y-2 sm:space-y-3 float-animation" style={{ animationDelay: '0.5s' }}>
-              <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-accent mx-auto" />
-              <h3 className="text-base sm:text-lg font-semibold">定制需求</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                个性化AI解决方案，满足特定业务场景
-              </p>
-            </div>
-          </div>
-
           {/* 主要操作按钮 */}
-          <div className="space-y-4 sm:space-y-6 px-2">
+          <div className="space-y-3 sm:space-y-4 px-4 sm:px-2 flex flex-col items-center">
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
               <DialogTrigger asChild>
-                <Button className="btn-primary text-xl sm:text-2xl lg:text-3xl py-6 px-8 sm:py-8 sm:px-12 lg:py-10 lg:px-16 rounded-2xl pulse-glow text-white w-full sm:w-auto">
-                  <Plus className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 mr-2 sm:mr-3 lg:mr-4" />
+                <Button className="btn-primary text-lg sm:text-xl py-4 px-8 sm:py-4 sm:px-10 lg:py-5 lg:px-12 rounded-xl pulse-glow text-white w-full sm:w-auto sm:min-w-[280px] sm:max-w-[360px] lg:max-w-[400px] shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Plus className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3" />
                   提个需求
                 </Button>
               </DialogTrigger>
@@ -96,16 +69,41 @@ export default function Home() {
               </DialogContent>
             </Dialog>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+            <div className="flex justify-center">
               <Link to="/pool" className="w-full sm:w-auto">
-                <Button className="btn-secondary text-base sm:text-lg py-3 px-6 sm:py-4 sm:px-8 w-full sm:w-auto">
+                <Button className="btn-secondary text-base py-3 px-6 sm:py-3 sm:px-8 lg:py-3.5 lg:px-10 w-full sm:w-auto sm:min-w-[200px] sm:max-w-[260px] lg:max-w-[280px] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-border/50">
                   <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   看看别人的需求
                 </Button>
               </Link>
             </div>
           </div>
+          {/* 特色功能展示 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 my-8 sm:my-12 px-4 sm:px-2">
+            <div className="card-gradient p-3 sm:p-4 lg:p-6 text-center space-y-2 sm:space-y-3 float-animation">
+              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-primary mx-auto" />
+              <h3 className="text-sm sm:text-base lg:text-lg font-semibold">业务提效</h3>
+              <p className="text-xs sm:text-xs lg:text-sm text-muted-foreground">
+                分享真实可落地的AI应用需求
+              </p>
+            </div>
 
+            <div className="card-gradient p-3 sm:p-4 lg:p-6 text-center space-y-2 sm:space-y-3 float-animation" style={{ animationDelay: '0.5s' }}>
+              <Zap className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-primary-glow mx-auto" />
+              <h3 className="text-sm sm:text-base lg:text-lg font-semibold">需求实现</h3>
+              <p className="text-xs sm:text-xs lg:text-sm text-muted-foreground">
+                实用需求获得开发者关注和实现
+              </p>
+            </div>
+
+            <div className="card-gradient p-3 sm:p-4 lg:p-6 text-center space-y-2 sm:space-y-3 float-animation" style={{ animationDelay: '1s' }}>
+              <Settings className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-accent mx-auto" />
+              <h3 className="text-sm sm:text-base lg:text-lg font-semibold">定制需求</h3>
+              <p className="text-xs sm:text-xs lg:text-sm text-muted-foreground">
+                个性化AI解决方案，满足特定业务场景
+              </p>
+            </div>
+          </div>
           {/* 底部说明 */}
           <div className="mt-16 text-center space-y-2">
             <p className="text-sm text-muted-foreground/60">

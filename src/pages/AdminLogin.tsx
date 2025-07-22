@@ -55,7 +55,7 @@ export default function AdminLogin() {
         {/* 返回首页按钮 */}
         <div className="flex justify-start">
           <Link to="/">
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" className="text-muted-foreground hover:text-foreground h-9 px-3">
               <ArrowLeft className="h-4 w-4 mr-2" />
               返回首页
             </Button>
@@ -116,9 +116,9 @@ export default function AdminLogin() {
                 />
               </div>
               
-              <Button 
-                type="submit" 
-                className="w-full btn-primary"
+              <Button
+                type="submit"
+                className="w-full btn-primary h-11"
                 disabled={isLoading}
               >
                 {isLoading ? '登录中...' : '登录'}

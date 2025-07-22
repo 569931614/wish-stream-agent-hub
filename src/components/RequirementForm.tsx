@@ -269,11 +269,11 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
             )}
           </div>
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-3 sm:gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
-              className="flex-none w-28 h-14 text-lg border-border hover:border-border/80 rounded-xl"
+              className="flex-none w-24 sm:w-28 h-12 sm:h-14 text-base sm:text-lg border-border hover:border-border/80 rounded-xl"
               onClick={handleCancel}
               disabled={isSubmitting}
             >
@@ -281,7 +281,7 @@ export function RequirementForm({ onSubmit, onCancel }: RequirementFormProps) {
             </Button>
             <Button
               type="submit"
-              className="flex-1 h-14 text-lg bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 text-primary-foreground rounded-xl shadow-lg hover:shadow-xl transition-all"
+              className="flex-1 h-12 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 text-primary-foreground rounded-xl shadow-lg hover:shadow-xl transition-all"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
